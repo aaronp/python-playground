@@ -72,3 +72,46 @@ INSERT INTO Inventory VALUES (1, 'banana', 150); INSERT INTO Inventory VALUES (2
 SELECT * FROM Inventory WHERE quantity > 152;
 GO
 ```
+
+
+### pyodbc example
+
+```
+import pandas as pd
+import pyodbc
+
+# Create a Pandas DataFrame (replace this with your actual DataFrame)
+data = {
+    'Name': ['John', 'Jane', 'Bob'],
+    'Age': [25, 30, 22],
+    'City': ['New York', 'San Francisco', 'Seattle']
+}
+df = pd.DataFrame(data)
+
+# depends on above cell
+connection_string = f'DRIVER={driver};SERVER={server};DATABASE={database};UID={username};PWD={password};TrustServerCertificate=yes;'
+print(f'connecting using: {connection_string}')
+connection = pyodbc.connect(connection_string)
+print("Connected!")
+try:
+    cursor = connection.cursor()
+    cursor.execute('''
+        if not exists (select * from sysobjects where name='sampletable' and xtype='U')
+            CREATE TABLE sampletable (
+                Name VARCHAR(50),
+                Age INT
+            )
+
+    ''')
+    connection.commit()
+
+    print("Created Table!")
+    
+    # Save DataFrame to the database
+    df.to_sql(name='sampletable', con=connection, if_exists='replace', index=False)
+    print("Saved data frame!")
+
+finally:
+    # Close the connection
+    connection.close()
+```
